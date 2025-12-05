@@ -1,5 +1,5 @@
 #include "PageReqGenerator.hpp"
-#include "Pager.hpp"
+#include "Pagers.hpp"
 
 int main() {
     PageReqGenerator req_generator;
