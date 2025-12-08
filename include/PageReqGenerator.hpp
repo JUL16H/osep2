@@ -1,8 +1,9 @@
 #pragma once
 #include "RNG.hpp"
+#include <string>
 #include <vector>
-#include <span>
 #include <algorithm>
+#include <fstream>
 
 class PageReqGenerator {
 public:
@@ -22,6 +23,14 @@ public:
                 st.push_back(page_req_vec[i]);
             }
         }
+        write_to_file();
+    }
+
+    void write_to_file(std::string filename = "PageReq") {
+        std::ofstream fout("out/" + filename + ".txt", std::ios::out);
+        if (!fout.is_open())
+            return;
+        std::ranges::for_each(page_req_vec, [&fout](auto p){ fout << p << " "; });
     }
 
     const std::vector<unsigned>& get_page_req() const noexcept {
