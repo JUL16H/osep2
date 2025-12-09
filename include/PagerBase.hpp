@@ -4,7 +4,7 @@
 #include <iostream>
 #include <format>
 #include <fstream>
-#include "unordered_set"
+#include <unordered_set>
 
 template <int N>
 class PagerBase {
@@ -39,14 +39,7 @@ public:
 
 protected:
     virtual unsigned insert(unsigned p) = 0;
-
-    unsigned plain_insert(unsigned p) {
-
-    }
-
-    void replace(unsigned pos, unsigned p) {
-
-    }
+    virtual const char* name() const noexcept = 0;
 
     void show(unsigned notice) {
         fout << '+';
@@ -70,10 +63,8 @@ protected:
 
 protected:
     unsigned idx = 0;
-    unsigned cnt = 0;
     std::fstream fout;
-    std::pmr::unordered_set<unsigned> st;
+    std::unordered_set<unsigned> st;
     std::array<unsigned, N> pages = { 0 };
     std::vector<unsigned> reqs;
-    virtual const char* name() const noexcept = 0;
 };

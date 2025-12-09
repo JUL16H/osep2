@@ -1,5 +1,6 @@
 #pragma once
 #include "PagerBase.hpp"
+#include <queue>
 #include <unordered_map>
 
 template <unsigned N>
@@ -7,6 +8,7 @@ class Pager_OPT : public PagerBase<N> {
 public:
     Pager_OPT(std::vector<unsigned> _reqs) : PagerBase<N>(_reqs) {}
 
+protected:
     unsigned insert(unsigned p) override {
         for (unsigned i = 0; i < N; i++)
             if (this->pages[i] == p)
@@ -33,9 +35,9 @@ public:
         return pos;
     }
 
-protected:
     const char* name() const noexcept override {
         return "OPT";
     }
+private:
+    unsigned cnt = 0;
 };
-
