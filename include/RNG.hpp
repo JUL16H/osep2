@@ -13,6 +13,7 @@ public:
         std::bernoulli_distribution dis(p);
         return dis(gen);
     }
+
 private:
     unsigned seed;
     std::mt19937 gen;

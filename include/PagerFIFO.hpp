@@ -4,31 +4,31 @@
 template <unsigned N>
 class Pager_FIFO : public PagerBase<N> {
 public:
-    Pager_FIFO(std::vector<unsigned> _reqs) : PagerBase<N>(_reqs) {}
+    Pager_FIFO(std::vector<unsigned> _reqs) : PagerBase<N>(_reqs) {
+        this->enroll_show_row("Cur Point", this->show_cur_arr.data(),
+                              sizeof(unsigned));
+        this->show_cur_arr[N - 1] = 1;
+    }
 
 protected:
-    unsigned insert (unsigned p) override {
-        for (unsigned i = 0; i < cnt; i++)
-            if (this->pages[i] == p)
-                return i;
+    unsigned insert(unsigned p) override {
+        if (this->mp.count(p))
+            return this->mp[p];
 
-        if (this->cnt != N) {
-            this->pages[this->cnt++] = p;
-            return this->cnt - 1;
-        }
+        unsigned pos;
+        if (this->try_plain_insert(p, pos))
+            return pos;
 
-        unsigned pos = cur;
+        show_cur_arr[cur] = 0;
         cur = (cur + 1) % N;
-
-        this->pages[pos] = p;
-        return pos;
+        show_cur_arr[cur] = 1;
+        this->replace(cur, p);
+        return cur;
     }
 
-    const char* name() const noexcept override {
-        return "FIFO";
-    }
+    const char* name() const noexcept override { return "FIFO"; }
 
 private:
-    unsigned cur = 0;
-    unsigned cnt = 0;
+    unsigned cur = N - 1;
+    std::array<unsigned, N> show_cur_arr = {0};
 };

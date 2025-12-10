@@ -1,7 +1,6 @@
 #pragma once
 #include "PagerBase.hpp"
-#include <queue>
-#include <unordered_map>
+#include <unordered_set>
 
 template <unsigned N>
 class Pager_OPT : public PagerBase<N> {
@@ -10,34 +9,28 @@ public:
 
 protected:
     unsigned insert(unsigned p) override {
-        for (unsigned i = 0; i < N; i++)
-            if (this->pages[i] == p)
-                return i;
+        if (this->mp.count(p))
+            return this->mp[p];
 
-        if (this->cnt != N) {
-            this->pages[this->cnt++] = p;
-            return this->cnt - 1;
-        }
+        unsigned pos;
+        if (this->try_plain_insert(p, pos))
+            return pos;
 
-        std::unordered_map<unsigned, unsigned> mp;
-        for (unsigned i = 0; i < N; i++)
-            mp[this->pages[i]] = i;
+        std::unordered_set<unsigned> st;
+        for (const auto p : this->pages)
+            st.insert(p);
 
         for (unsigned i = this->idx; i < this->reqs.size(); i++) {
-            if (mp.size() == 1)
+            if (st.count(this->reqs[i]))
+                st.erase(this->reqs[i]);
+            if (st.size() == 1)
                 break;
-            if (mp.count(this->reqs[i]))
-                mp.erase(this->reqs[i]);
         }
 
-        auto pos = mp.begin()->second;
-        this->pages[pos] = p;
+        pos = this->mp[*st.begin()];
+        this->replace(pos, p);
         return pos;
     }
 
-    const char* name() const noexcept override {
-        return "OPT";
-    }
-private:
-    unsigned cnt = 0;
+    const char* name() const noexcept override { return "OPT"; }
 };

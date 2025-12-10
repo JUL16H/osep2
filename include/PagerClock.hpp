@@ -5,22 +5,22 @@
 template <unsigned N>
 class Pager_Clock : public PagerBase<N> {
 public:
-    Pager_Clock(std::vector<unsigned> _reqs) : PagerBase<N>(_reqs) {}
+    Pager_Clock(std::vector<unsigned> _reqs) : PagerBase<N>(_reqs) {
+        this->enroll_show_row("Access Flags", this->access_flgs.data(), sizeof(unsigned));
+    }
 
 protected:
     unsigned insert(unsigned p) override {
-        for (unsigned i = 0; i < this->cnt; i++) {
-            if (this->pages[i] == p) {
-                clock_insert(i, p);
-                return i;
-            }
-        }
-        if (this->cnt < N) {
-            clock_insert(cnt, p);
-            return this->cnt++;
+        unsigned pos;
+        if (this->mp.count(p))
+            return this->mp[p];
+
+        if (this->try_plain_insert(p, pos)) {
+            this->replace(pos, p);
+            this->access_flgs[pos] = true;
+            return pos;
         }
 
-        unsigned pos;
         while (true) {
             this->cur = (this->cur + 1) % N;
             if (this->access_flgs[this->cur])
@@ -30,7 +30,8 @@ protected:
                 break;
             }
         }
-        this->clock_insert(pos, p);
+        this->replace(pos, p);
+        this->access_flgs[pos] = true;
         return pos;
     }
 
@@ -43,7 +44,6 @@ private:
         this->access_flgs[pos] = true;
     }
 private:
-    std::array<bool, N> access_flgs;
+    std::array<unsigned, N> access_flgs;
     unsigned cur = N - 1;
-    unsigned cnt = 0;
 };

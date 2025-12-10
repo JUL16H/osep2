@@ -1,29 +1,23 @@
 #pragma once
 #include "PagerBase.hpp"
-#include <unordered_map>
-#include <deque>
-#include <vector>
-#include <utility>
+#include <array>
 
 template <unsigned N>
 class Pager_LRU : public PagerBase<N> {
 public:
-    Pager_LRU(std::vector<unsigned> _reqs) : PagerBase<N>(_reqs) {}
-
-    unsigned insert(unsigned p) override {
-        for (unsigned i = 0; i < cnt; i++) {
-            if (this->pages[i] == p) {
-            }
-        }
-    }
+	Pager_LRU(std::vector<unsigned> _reqs) : PagerBase<N>(_reqs) {}
 
 protected:
-    const char* name() const noexcept override {
-        return "LRU";
-    }
+	unsigned insert(unsigned p) override {
+		if (this->mp.count(p)) {
+		}
+	}
+
+	const char* name() const noexcept override { return "LRU"; }
 
 private:
-    unsigned cnt = 0;
-    std::unordered_map<unsigned, unsigned> mp;
-    std::deque<unsigned> que;
+	unsigned head;
+	unsigned tail = 0;
+	std::array<unsigned, N> prev = {0};
+	std::array<unsigned, N> nxt = {0};
 };

@@ -1,9 +1,8 @@
 #pragma once
-#include <vector>
-#include <iostream>
 #include <format>
+#include <iostream>
 #include <unordered_map>
-#include <algorithm>
+#include <vector>
 
 template <int N>
 class PagerBase {
@@ -11,13 +10,14 @@ public:
     PagerBase(std::vector<unsigned> _reqs) : reqs(_reqs) {};
     void run() {
         std::cout << "\033[1;32m" << std::string(30, '=') << name()
-         << std::string(30, '=') << "\033[0m\n";
+                  << std::string(30, '=') << "\033[0m\n";
         while (idx < reqs.size()) {
             auto i = insert();
             show(i);
         }
     }
     void operator()() { run(); }
+
 protected:
     unsigned insert() {
         auto p = reqs[idx++];
@@ -69,7 +69,7 @@ protected:
 
 protected:
     unsigned idx = 0;
-    std::array<unsigned, N> pages = { 0 };
+    std::array<unsigned, N> pages = {0};
     std::vector<unsigned> reqs;
     virtual const char* name() const noexcept = 0;
 };
@@ -95,11 +95,8 @@ public:
     }
 
 protected:
-    const char* name() const noexcept override {
-        return "OPT";
-    }
+    const char* name() const noexcept override { return "OPT"; }
 };
-
 
 template <unsigned N>
 class Pager_FIFO : public PagerBase<N> {
@@ -113,9 +110,7 @@ public:
     }
 
 protected:
-    const char* name() const noexcept override {
-        return "FIFO";
-    }
+    const char* name() const noexcept override { return "FIFO"; }
 
 private:
     unsigned cur = 0;

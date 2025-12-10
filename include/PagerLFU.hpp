@@ -1,45 +1,47 @@
 #pragma once
 #include "PagerBase.hpp"
 #include <array>
-#include <unordered_map>
+#include <utility>
 
 template <unsigned N>
 class Pager_LFU : public PagerBase<N> {
 public:
-    Pager_LFU(std::vector<unsigned> _reqs) : PagerBase<N>(_reqs) {}
+    Pager_LFU(std::vector<unsigned> _reqs) : PagerBase<N>(_reqs) {
+        this->enroll_show_row("Visit Cnt", this->visit_info.data(),
+                              sizeof(std::pair<unsigned, unsigned>));
+        this->enroll_show_row(
+            "Visit time", reinterpret_cast<void*>(&this->visit_info[0].second),
+            sizeof(std::pair<unsigned, unsigned>));
+    }
 
 protected:
     unsigned insert(unsigned p) override {
-        for (unsigned i = 0; i < cnt; i++) {
-            if (this->pages[i] == p) {
-                visit_cnt[i]++;
-                return i;
-            }
+        unsigned pos;
+        if (this->mp.count(p)) {
+            pos = this->mp[p];
+            visit_info[pos].first++;
+            visit_info[pos].second = this->idx;
+            return pos;
         }
 
-        if (this->cnt != N) {
-            this->pages[this->cnt] = p;
-            visit_cnt[this->cnt] = 0;
-            this->cnt++;
-            return this->cnt - 1;
+        if (this->try_plain_insert(p, pos)) {
+            visit_info[pos] = {1, this->idx};
+            return pos;
         }
 
-        unsigned pos = 0;
+        pos = 0;
         for (unsigned i = 1; i < N; i++) {
-            if (this->visit_cnt[i] < this->visit_cnt[pos])
+            if (this->visit_info[i] < this->visit_info[pos])
                 pos = i;
         }
 
-        this->pages[pos] = p;
-        this->visit_cnt[pos] = 0;
+        this->replace(pos, p);
+        this->visit_info[pos] = {1, this->idx};
         return pos;
     }
 
-    const char* name() const noexcept override {
-        return "LFU";
-    }
+    const char* name() const noexcept override { return "LFU"; }
+
 private:
-    unsigned cnt = 0;;
-    std::unordered_map<unsigned, unsigned> mp;
-    std::array<unsigned, N> visit_cnt;
+    std::array<std::pair<unsigned, unsigned>, N> visit_info;
 };
