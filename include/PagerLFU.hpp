@@ -7,11 +7,12 @@ template <unsigned N>
 class Pager_LFU : public PagerBase<N> {
 public:
     Pager_LFU(std::vector<unsigned> _reqs) : PagerBase<N>(_reqs) {
-        this->enroll_show_row("Visit Cnt", this->visit_info.data(),
-                              sizeof(std::pair<unsigned, unsigned>));
-        this->enroll_show_row(
-            "Visit time", reinterpret_cast<void*>(&this->visit_info[0].second),
-            sizeof(std::pair<unsigned, unsigned>));
+        this->enroll_show_row("Visit Cnt", [this](unsigned pos) {
+            return std::to_string(this->visit_info[pos].first);
+        });
+        this->enroll_show_row("Visit Time", [this](unsigned pos) {
+            return std::to_string(this->visit_info[pos].second);
+        });
     }
 
 protected:

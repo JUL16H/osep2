@@ -6,15 +6,18 @@ template <unsigned N>
 class Pager_Clock : public PagerBase<N> {
 public:
     Pager_Clock(std::vector<unsigned> _reqs) : PagerBase<N>(_reqs) {
-        this->enroll_show_row("Access Flags", this->access_flgs.data(), sizeof(unsigned));
+        this->enroll_show_row("Access Flags",
+                              [this](unsigned pos) { return this->access_flgs[pos] ? "●" : "○"; });
     }
 
 protected:
     unsigned insert(unsigned p) override {
-        unsigned pos;
-        if (this->mp.count(p))
+        if (this->mp.count(p)) {
+            this->access_flgs[this->mp[p]] = true;
             return this->mp[p];
+        }
 
+        unsigned pos;
         if (this->try_plain_insert(p, pos)) {
             this->replace(pos, p);
             this->access_flgs[pos] = true;
@@ -35,15 +38,15 @@ protected:
         return pos;
     }
 
-    const char* name() const noexcept override {
-        return "Clock";
-    }
+    const char* name() const noexcept override { return "Clock"; }
+
 private:
     void clock_insert(unsigned pos, unsigned p) {
         this->pages[pos] = p;
         this->access_flgs[pos] = true;
     }
+
 private:
-    std::array<unsigned, N> access_flgs;
+    std::array<bool, N> access_flgs;
     unsigned cur = N - 1;
 };

@@ -5,8 +5,9 @@ template <unsigned N>
 class Pager_FIFO : public PagerBase<N> {
 public:
     Pager_FIFO(std::vector<unsigned> _reqs) : PagerBase<N>(_reqs) {
-        this->enroll_show_row("Cur Point", this->show_cur_arr.data(),
-                              sizeof(unsigned));
+        this->enroll_show_row("Cur Point", [this](unsigned pos) {
+            return (this->cnt < N ? this->cnt - 1 : this->cur) == pos ? "*" : "";
+        });
         this->show_cur_arr[N - 1] = 1;
     }
 

@@ -1,6 +1,7 @@
 #pragma once
 #include <format>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <string>
 #include <unordered_map>
@@ -13,15 +14,16 @@ template <int N>
 class PagerBase {
 public:
     PagerBase(std::vector<unsigned> _reqs) : reqs(_reqs) {
-        enroll_show_row("pages", this->pages.data(), sizeof(unsigned));
+        // enroll_show_row("pages", this->pages.data(), sizeof(unsigned));
+        enroll_show_row("pages", [this](unsigned pos) { return std::to_string(this->pages[pos]); });
     }
     void run() {
         fout.open("out/" + std::string(this->name()) + ".txt", std::ios::out);
         if (!fout.is_open())
             return;
 
-        fout << "\033[1;32m" << std::string(30, '=') << name()
-             << std::string(30, '=') << "\033[0m\n";
+        fout << "\033[1;32m" << std::string(30, '=') << name() << std::string(30, '=')
+             << "\033[0m\n";
 
         while (idx < reqs.size()) {
             for (unsigned i = 0; i < reqs.size(); i++) {
@@ -71,7 +73,7 @@ protected:
             fout << std::string(ITEM_LEN, '-') + "+";
         fout << "\n";
 
-        for (int i = 0; i < show_rows.size(); i++) {
+        for (int i = 0; i < show_funcs.size(); i++) {
             fout << std::format("|{:{}s}|", show_row_names[i], NAME_LEN);
             for (unsigned j = 0; j < N; j++) {
                 if (pages[j] == 0)
@@ -79,13 +81,7 @@ protected:
                 else {
                     if (j == notice)
                         fout << "\033[1;31m";
-                    fout << std::format(
-                                "{:{}d}",
-                                *reinterpret_cast<unsigned*>(
-                                    (unsigned long long)show_rows[i].first +
-                                    show_rows[i].second * j),
-                                ITEM_LEN)
-                         << "\033[0m|";
+                    fout << std::format("{:{}}", show_funcs[i](j), ITEM_LEN) << "\033[0m|";
                 }
             }
             fout << '\n';
@@ -98,9 +94,9 @@ protected:
         fout << "\n";
     }
 
-    void enroll_show_row(std::string name, void* vec, unsigned type_size) {
-        this->show_row_names.push_back(name);
-        this->show_rows.push_back({vec, type_size});
+    void enroll_show_row(std::string name, std::function<std::string(unsigned pos)> func) {
+        show_row_names.push_back(name);
+        show_funcs.push_back(func);
     }
 
 protected:
@@ -110,7 +106,6 @@ protected:
     std::vector<unsigned> reqs;
     std::array<unsigned, N> pages = {0};
     std::unordered_map<unsigned, unsigned> mp;
-
     std::vector<std::string> show_row_names;
-    std::vector<std::pair<void*, unsigned>> show_rows;
+    std::vector<std::function<std::string(unsigned)>> show_funcs;
 };
