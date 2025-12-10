@@ -41,6 +41,9 @@ public:
 
             show(pos);
         }
+
+        fout << std::format("命中{}次, 缺页{}次, 命中率{:.2f}%\n", hit_cnt, replace_cnt,
+                            hit_cnt * 1e2 / (hit_cnt + replace_cnt));
         fout.close();
     }
     void operator()() { run(); }
@@ -49,11 +52,20 @@ protected:
     virtual unsigned insert(unsigned p) = 0;
     virtual const char* name() const noexcept = 0;
 
+    bool is_exists(unsigned p, unsigned& pos) {
+        if (!mp.count(p))
+            return false;
+        hit_cnt++;
+        pos = mp[p];
+        return true;
+    }
+
     bool try_plain_insert(unsigned p, unsigned& pos) {
         if (cnt < N) {
             mp[p] = cnt;
             pos = cnt;
             pages[cnt++] = p;
+            replace_cnt++;
             return true;
         }
         return false;
@@ -63,6 +75,7 @@ protected:
         mp.erase(pages[pos]);
         pages[pos] = p;
         mp[p] = pos;
+        replace_cnt++;
     }
 
     void show(unsigned notice) {
@@ -108,4 +121,7 @@ protected:
     std::unordered_map<unsigned, unsigned> mp;
     std::vector<std::string> show_row_names;
     std::vector<std::function<std::string(unsigned)>> show_funcs;
+
+    unsigned hit_cnt = 0;
+    unsigned replace_cnt = 0;
 };

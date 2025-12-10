@@ -13,12 +13,9 @@ public:
 
 protected:
     unsigned insert(unsigned p) override {
-        if (this->mp.count(p))
-            return this->mp[p];
-
         unsigned pos;
-        if (this->try_plain_insert(p, pos))
-            return pos;
+        if (this->is_exists(p, pos) || this->try_plain_insert(p, pos))
+            return this->mp[p];
 
         show_cur_arr[cur] = 0;
         cur = (cur + 1) % N;

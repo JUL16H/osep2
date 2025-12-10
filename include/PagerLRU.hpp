@@ -13,13 +13,13 @@ public:
 
 protected:
     unsigned insert(unsigned p) override {
-        if (this->mp.count(p)) {
+        unsigned pos;
+        if (this->is_exists(p, pos)) {
             this->lru_lst.splice(this->lru_lst.end(), this->lru_lst, this->lru_mp[p]);
             this->reset_show_info();
-            return this->mp[p];
+            return pos;
         }
 
-        unsigned pos;
         if (this->try_plain_insert(p, pos)) {
             this->lru_lst.push_back(p);
             this->lru_mp[p] = std::prev(this->lru_lst.end());

@@ -18,8 +18,7 @@ public:
 protected:
     unsigned insert(unsigned p) override {
         unsigned pos;
-        if (this->mp.count(p)) {
-            pos = this->mp[p];
+        if (this->is_exists(p, pos)) {
             visit_info[pos].first++;
             visit_info[pos].second = this->idx;
             return pos;

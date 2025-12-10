@@ -12,14 +12,14 @@ public:
 
 protected:
     unsigned insert(unsigned p) override {
-        if (this->mp.count(p)) {
-            this->access_flgs[this->mp[p]] = true;
-            return this->mp[p];
+        unsigned pos;
+
+        if (this->is_exists(p, pos)) {
+            this->access_flgs[pos] = true;
+            return pos;
         }
 
-        unsigned pos;
         if (this->try_plain_insert(p, pos)) {
-            this->replace(pos, p);
             this->access_flgs[pos] = true;
             return pos;
         }
