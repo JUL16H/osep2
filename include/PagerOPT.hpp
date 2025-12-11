@@ -10,7 +10,6 @@ public:
 protected:
     unsigned insert(unsigned p) override {
         unsigned pos;
-
         if (this->is_exists(p, pos) || this->try_plain_insert(p, pos))
             return pos;
 

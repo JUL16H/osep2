@@ -7,15 +7,22 @@
 #include <unordered_map>
 #include <vector>
 
-const unsigned NAME_LEN = 12;
-const unsigned ITEM_LEN = 3;
+constexpr unsigned NAME_LEN = 12;
+constexpr unsigned ITEM_LEN = 3;
+
+struct InfoRow {
+    std::string name;
+    std::function<std::string(unsigned pos)> content;
+    bool colored = true;
+};
 
 template <int N>
 class PagerBase {
 public:
     PagerBase(std::vector<unsigned> _reqs) : reqs(_reqs) {
-        // enroll_show_row("pages", this->pages.data(), sizeof(unsigned));
-        enroll_show_row("pages", [this](unsigned pos) { return std::to_string(this->pages[pos]); });
+        static_assert(N > 0);
+        enroll_show_row(
+            InfoRow{"pages", [this](unsigned pos) { return std::to_string(this->pages[pos]); }});
     }
     void run() {
         fout.open("out/" + std::string(this->name()) + ".txt", std::ios::out);
@@ -36,14 +43,16 @@ public:
             fout << '\n';
 
             auto p = reqs[idx];
+            hit = mp.count(p);
+            hit_cnt += hit;
             auto pos = insert(p);
             idx++;
 
             show(pos);
         }
 
-        fout << std::format("命中{}次, 缺页{}次, 命中率{:.2f}%\n", hit_cnt, replace_cnt,
-                            hit_cnt * 1e2 / (hit_cnt + replace_cnt));
+        fout << std::format("命中{}次, 命中率{:.2f}%\n", hit_cnt,
+                            hit_cnt * 1e2 / this->reqs.size());
         fout.close();
     }
     void operator()() { run(); }
@@ -55,7 +64,6 @@ protected:
     bool is_exists(unsigned p, unsigned& pos) {
         if (!mp.count(p))
             return false;
-        hit_cnt++;
         pos = mp[p];
         return true;
     }
@@ -65,7 +73,6 @@ protected:
             mp[p] = cnt;
             pos = cnt;
             pages[cnt++] = p;
-            replace_cnt++;
             return true;
         }
         return false;
@@ -75,26 +82,24 @@ protected:
         mp.erase(pages[pos]);
         pages[pos] = p;
         mp[p] = pos;
-        replace_cnt++;
     }
 
     void show(unsigned notice) {
 
         fout << "+" + std::string(NAME_LEN, '-') + "+";
-
         for (unsigned i = 0; i < N; i++)
             fout << std::string(ITEM_LEN, '-') + "+";
         fout << "\n";
 
-        for (int i = 0; i < show_funcs.size(); i++) {
-            fout << std::format("|{:{}s}|", show_row_names[i], NAME_LEN);
+        for (int i = 0; i < info_rows.size(); i++) {
+            fout << std::format("|{:{}s}|", info_rows[i].name, NAME_LEN);
             for (unsigned j = 0; j < N; j++) {
                 if (pages[j] == 0)
                     fout << std::string(ITEM_LEN, ' ') + "|";
                 else {
-                    if (j == notice)
-                        fout << "\033[1;31m";
-                    fout << std::format("{:{}}", show_funcs[i](j), ITEM_LEN) << "\033[0m|";
+                    if (j == notice && info_rows[i].colored)
+                        fout << (hit ? "\033[1;32m" : "\033[1;31m");
+                    fout << std::format("{:{}}", info_rows[i].content(j), ITEM_LEN) << "\033[0m|";
                 }
             }
             fout << '\n';
@@ -107,10 +112,7 @@ protected:
         fout << "\n";
     }
 
-    void enroll_show_row(std::string name, std::function<std::string(unsigned pos)> func) {
-        show_row_names.push_back(name);
-        show_funcs.push_back(func);
-    }
+    void enroll_show_row(InfoRow row) { info_rows.push_back(row); }
 
 protected:
     std::fstream fout;
@@ -119,9 +121,8 @@ protected:
     std::vector<unsigned> reqs;
     std::array<unsigned, N> pages = {0};
     std::unordered_map<unsigned, unsigned> mp;
-    std::vector<std::string> show_row_names;
-    std::vector<std::function<std::string(unsigned)>> show_funcs;
+    std::vector<InfoRow> info_rows;
 
+    bool hit;
     unsigned hit_cnt = 0;
-    unsigned replace_cnt = 0;
 };

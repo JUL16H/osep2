@@ -6,8 +6,11 @@ template <unsigned N>
 class Pager_Clock : public PagerBase<N> {
 public:
     Pager_Clock(std::vector<unsigned> _reqs) : PagerBase<N>(_reqs) {
-        this->enroll_show_row("Access Flags",
-                              [this](unsigned pos) { return this->access_flgs[pos] ? "●" : "○"; });
+        this->enroll_show_row(InfoRow{"Access Flags",
+            [this](unsigned pos) { return this->access_flgs[pos] ? "●" : "○"; }});
+        this->enroll_show_row(InfoRow{"Cur Point", [this](unsigned pos) {
+            return (this->cnt < N ? this->cnt - 1 : this->cur) == pos ? "*" : "";
+        }});
     }
 
 protected:

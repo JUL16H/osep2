@@ -6,9 +6,9 @@ template <unsigned N>
 class Pager_LRU : public PagerBase<N> {
 public:
     Pager_LRU(std::vector<unsigned> _reqs) : PagerBase<N>(_reqs) {
-        this->enroll_show_row("Lst", [this](unsigned pos) {
+        this->enroll_show_row(InfoRow{"Lst", [this](unsigned pos) {
             return std::to_string(this->show_arr_lst[pos]);
-        });
+        }, false});
     }
 
 protected:

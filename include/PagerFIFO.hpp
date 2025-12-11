@@ -5,10 +5,9 @@ template <unsigned N>
 class Pager_FIFO : public PagerBase<N> {
 public:
     Pager_FIFO(std::vector<unsigned> _reqs) : PagerBase<N>(_reqs) {
-        this->enroll_show_row("Cur Point", [this](unsigned pos) {
+        this->enroll_show_row(InfoRow{"Cur Point", [this](unsigned pos) {
             return (this->cnt < N ? this->cnt - 1 : this->cur) == pos ? "*" : "";
-        });
-        this->show_cur_arr[N - 1] = 1;
+        }});
     }
 
 protected:
@@ -17,9 +16,7 @@ protected:
         if (this->is_exists(p, pos) || this->try_plain_insert(p, pos))
             return this->mp[p];
 
-        show_cur_arr[cur] = 0;
         cur = (cur + 1) % N;
-        show_cur_arr[cur] = 1;
         this->replace(cur, p);
         return cur;
     }
@@ -28,5 +25,4 @@ protected:
 
 private:
     unsigned cur = N - 1;
-    std::array<unsigned, N> show_cur_arr = {0};
 };
