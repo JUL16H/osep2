@@ -9,7 +9,7 @@ public:
         this->enroll_show_row(InfoRow{"Access Flags",
             [this](unsigned pos) { return this->access_flgs[pos] ? "●" : "○"; }});
         this->enroll_show_row(InfoRow{"Cur Point", [this](unsigned pos) {
-            return (this->cnt < N ? this->cnt - 1 : this->cur) == pos ? "*" : "";
+            return (this->cnt < N ? this->cnt - 1 : this->cur) == pos ? "↑" : "";
         }});
     }
 

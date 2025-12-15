@@ -6,7 +6,7 @@ class Pager_FIFO : public PagerBase<N> {
 public:
     Pager_FIFO(std::vector<unsigned> _reqs) : PagerBase<N>(_reqs) {
         this->enroll_show_row(InfoRow{"Cur Point", [this](unsigned pos) {
-            return (this->cnt < N ? this->cnt - 1 : this->cur) == pos ? "*" : "";
+            return (this->cnt < N ? this->cnt - 1 : this->cur) == pos ? "↑" : "";
         }});
     }
 
